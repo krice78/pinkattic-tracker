@@ -24,6 +24,9 @@ def create_app():
     # Blueprints
     from .routes.auth import auth_bp
     app.register_blueprint(auth_bp)
+    
+    from .routes.items import items_bp
+    app.register_blueprint(items_bp)
 
     # Main blueprint
     from flask import Blueprint
@@ -35,6 +38,9 @@ def create_app():
             return redirect(url_for("auth.login_get"))
         
         from .models import Item
+        from .routes.items import ItemForm
+        
+        form = ItemForm()
         items = Item.query.filter_by(user_id=current_user.id).all()
         total_profit = sum(item.total_profit for item in items)
         total_invested = sum(float(item.cost_price) * item.quantity for item in items if not item.sold)
@@ -44,7 +50,8 @@ def create_app():
                              items=items,
                              total_profit=total_profit,
                              total_invested=total_invested,
-                             items_sold=items_sold)
+                             items_sold=items_sold
+                             form=form)
         
     @main_bp.get("/login")
     def login_alias():

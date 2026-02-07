@@ -32,7 +32,7 @@ def register_get():
     if current_user.is_authenticated:
         return redirect(url_for("main.index"))
     form = RegisterForm()
-    return render_template("auth/register.html", form=form)
+    return render_template("register.html", form=form)
 
 
 @auth_bp.post("/register")
@@ -42,7 +42,7 @@ def register_post():
 
     form = RegisterForm()
     if not form.validate_on_submit():
-        return render_template("auth/register.html", form=form)
+        return render_template("register.html", form=form)
 
     email = form.email.data.strip().lower()
 
@@ -67,7 +67,7 @@ def login_get():
     if current_user.is_authenticated:
         return redirect(url_for("main.index"))
     form = LoginForm()
-    return render_template("auth/login.html", form=form)
+    return render_template("login.html", form=form)
 
 
 @auth_bp.post("/login")
@@ -77,14 +77,14 @@ def login_post():
 
     form = LoginForm()
     if not form.validate_on_submit():
-        return render_template("auth/login.html", form=form)
+        return render_template("login.html", form=form)
 
     email = form.email.data.strip().lower()
     user = User.query.filter_by(email=email).first()
 
     if not user or not user.check_password(form.password.data):
         flash("Invalid email or password.", "danger")
-        return render_template("auth/login.html", form=form)
+        return render_template("login.html", form=form)
 
     login_user(user)
     next_url = request.args.get("next")

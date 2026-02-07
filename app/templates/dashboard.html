@@ -11,7 +11,7 @@
       .summary-card { background: #f5f5f5; padding: 20px; border-radius: 5px; text-align: center; }
       .summary-card h3 { color: #666; margin: 0; font-size: 12px; }
       .summary-card .value { font-size: 24px; font-weight: bold; color: #333; margin: 10px 0; }
-      table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
       th { background: #333; color: white; padding: 10px; text-align: left; }
       td { padding: 10px; border-bottom: 1px solid #ddd; }
       tr:hover { background: #f9f9f9; }
@@ -56,6 +56,16 @@
       </div>
     </div>
 
+    <h3>Add Item</h3>
+    <form method="post" action="{{ url_for('items.add_item') }}">
+      {{ form.hidden_tag() }}
+      <p>{{ form.name.label }}<br>{{ form.name(size=30) }}</p>
+      <p>{{ form.quantity.label }}<br>{{ form.quantity() }}</p>
+      <p>{{ form.cost_price.label }}<br>{{ form.cost_price() }}</p>
+      <p>{{ form.selling_price.label }}<br>{{ form.selling_price() }}</p>
+      <p>{{ form.submit() }}</p>
+    </form>
+    <hr>
     <h2>Inventory Items</h2>
     {% if items %}
       <table>

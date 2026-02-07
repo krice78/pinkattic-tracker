@@ -50,7 +50,7 @@ def create_app():
                              items=items,
                              total_profit=total_profit,
                              total_invested=total_invested,
-                             items_sold=items_sold
+                             items_sold=items_sold,
                              form=form)
         
     @main_bp.get("/login")

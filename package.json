@@ -1,0 +1,12 @@
+﻿{
+  "name": "pinkattic_tracker",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "format:prettier": "prettier --write \"app/templates/**/*.html\" \"app/static/**/*.{js,css,scss,ts,jsx,tsx}\" \"*.json\"",
+    "format": "npm run format:prettier"
+  },
+  "devDependencies": {
+    "prettier": "^2.8.8"
+  }
+}

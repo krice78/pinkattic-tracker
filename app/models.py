@@ -62,9 +62,28 @@ class Item(db.Model):
 
     @property
     def profit_per_item(self):
-        if self.selling_price:
-            return float(self.selling_price) - float(self.cost_price)
-        return 0
+        if not self.selling_price:
+            return 0
+        
+        selling_price = float(self.selling_price)
+        cost_price = float(self.cost_price)
+        fees = 0
+        
+        # Platform-specific fee calculations
+        if self.platform:
+            platform_lower = self.platform.lower()
+            
+            if 'etsy' in platform_lower:
+                # Etsy: 6.5% transaction fee + 3% + $0.20 payment processing
+                fees = (selling_price * 0.095) + 0.20
+            elif 'ebay' in platform_lower:
+                # eBay: 12.9% final value fee
+                fees = selling_price * 0.129
+            elif 'poshmark' in platform_lower:
+                # Poshmark: 20% commission
+                fees = selling_price * 0.20
+        
+        return selling_price - fees - cost_price
 
     @property
     def total_profit(self):

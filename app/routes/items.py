@@ -44,3 +44,41 @@ def add_item():
 
     flash("Item added.", "success")
     return redirect(url_for("main.index"))
+
+@items_bp.post("/edit/<int:item_id>")
+@login_required
+def edit_post(item_id):
+    item = Item.query.get_or_404(item_id)
+    if item.user_id != current_user.id:
+        flash("You do not have permission to edit this item.", "danger")
+        return redirect(url_for("main.index"))
+    
+    form = ItemForm()
+    if not form.validate_on_submit():
+        flash("Please correct the errors in the form.", "warning")
+        return render_template("edit_item.html", form=form, item=item)
+    
+    item.name = form.name.data.strip()
+    item.quantity = int(form.quantity.data)
+    item.cost_price = Decimal(form.cost_price.data)
+    item.source = form.source.data.strip() if form.source.data else None
+    item.platform = form.platform.data.strip() if form.platform.data else None
+    item.selling_price = Decimal(form.selling_price.data) if form.selling_price.data is not None else None
+    
+    db.session.commit()
+    flash("Item updated.", "success")
+    return redirect(url_for("main.index"))
+
+
+@items_bp.post("/delete<int:item_id>/delete")
+@login_required
+def delete_item(item_id):
+    item = Item.query.get_or_404(item_id)
+    if item.user_id != current_user.id:
+        flash("You do not have permission to delete this item.", "danger")
+        return redirect(url_for("main.index"))
+    
+    db.session.delete(item)
+    db.session.commit()
+    flash("Item deleted.", "success")
+    return redirect(url_for("main.index"))

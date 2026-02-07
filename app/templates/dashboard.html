@@ -106,7 +106,7 @@
               <td>
                 <a href="{{ url_for('items.edit_get', item_id=item.id) }}">Edit</a> |
                 <form method="post" action="{{ url_for('items.delete_item', item_id=item.id) }}" style="display:inline;" onsubmit="return confirm('Delete this item?');">
-                    <button type="submit" style="background:none;border:none;color:#d9534f;cursor:pointer;text-decoration:underline;">Delete</button>
+                    <button type="submit" style="background:none;border:none;color:#d9534f;cursor:pointer;text-decoration:underline;font-family:inherit;font-size:inherit;padding:0;">Delete</button>
                 </form>
               </td>
             </tr>

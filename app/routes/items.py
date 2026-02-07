@@ -45,6 +45,25 @@ def add_item():
     flash("Item added.", "success")
     return redirect(url_for("main.index"))
 
+@items_bp.get("/edit/<int:item_id>")
+@login_required
+def edit_get(item_id):
+    item = Item.query.get_or_404(item_id)
+    if item.user_id != current_user.id:
+        flash("You do not have permission to edit this item.", "danger")
+        return redirect(url_for("main.index"))
+    
+    form = ItemForm()
+    form.name.data = item.name
+    form.quantity.data = item.quantity
+    form.cost_price.data = item.cost_price
+    form.source.data = item.source
+    form.selling_price.data = item.selling_price
+    form.platform.data = item.platform
+    
+    return render_template("edit_item.html", form=form, item=item)
+
+
 @items_bp.post("/edit/<int:item_id>")
 @login_required
 def edit_post(item_id):
@@ -70,7 +89,7 @@ def edit_post(item_id):
     return redirect(url_for("main.index"))
 
 
-@items_bp.post("/delete<int:item_id>/delete")
+@items_bp.post("/delete/<int:item_id>")
 @login_required
 def delete_item(item_id):
     item = Item.query.get_or_404(item_id)

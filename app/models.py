@@ -11,7 +11,7 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(255), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC), nullable=False)
     
     # Relationships
     categories = db.relationship("Category", back_populates="user", cascade="all, delete-orphan")
@@ -30,7 +30,7 @@ class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     name = db.Column(db.String(255), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC), nullable=False)
     
     # Relationships
     user = db.relationship("User", back_populates="categories")
@@ -53,7 +53,7 @@ class Item(db.Model):
     platform = db.Column(db.String(255), nullable=True)  # Etsy eBay, Poshmark, etc
     sold = db.Column(db.Boolean, default=False)
     sold_date = db.Column(db.DateTime, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC), nullable=False)
     
     # Relationships
     user = db.relationship("User", back_populates="items")

@@ -90,7 +90,9 @@
               <td>{{ item.name }}</td>
               <td>{{ item.quantity }}</td>
               <td>${{ "%.2f"|format(item.cost_price) }}</td>
+              <td>{{ item.source or '-' }}</td>
               <td>{% if item.selling_price %}${{ "%.2f"|format(item.selling_price) }}{% else %}-{% endif %}</td>
+              <td>{{ item.platform or '-' }}</td>
               <td>
                 {% if item.profit_per_item > 0 %}
                   <span class="profit">${{ "%.2f"|format(item.profit_per_item) }}</span>
@@ -101,6 +103,12 @@
                 {% endif %}
               </td>
               <td>{% if item.sold %}✓ Sold{% else %}📦 In Stock{% endif %}</td>
+              <td>
+                <a href="{{ url_for('items.edit_get', item_id=item.id) }}">Edit</a> |
+                <form method="post" action="{{ url_for('items.delete_item', item_id=item.id) }}" style="display:inline;" onsubmit="return confirm('Delete this item?');">
+                    <button type="submit" style="background:none;border:none;color:#d9534f;cursor:pointer;text-decoration:underline;">Delete</button>
+                </form>
+              </td>
             </tr>
           {% endfor %}
         </tbody>

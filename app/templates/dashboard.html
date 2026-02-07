@@ -104,6 +104,15 @@
               </td>
               <td>{% if item.sold %}✓ Sold{% else %}📦 In Stock{% endif %}</td>
               <td>
+                {% if not item.sold %}
+                  <form method="post" action="{{ url_for('items.mark_sold', item_id=item.id) }}" style="display:inline;">
+                    <button type="submit" style="background:none;border:none;color:#28a745;cursor:pointer;text-decoration:underline;font-family:inherit;font-size:inherit;padding:0;">Mark Sold</button>
+                  </form> | 
+                {% else %}
+                  <form method="post" action="{{ url_for('items.mark_sold', item_id=item.id) }}" style="display:inline;">
+                    <button type="submit" style="background:none;border:none;color:#6c757d;cursor:pointer;text-decoration:underline;font-family:inherit;font-size:inherit;padding:0;">Mark Unsold</button>
+                  </form> | 
+                {% endif %}
                 <a href="{{ url_for('items.edit_get', item_id=item.id) }}">Edit</a> |
                 <form method="post" action="{{ url_for('items.delete_item', item_id=item.id) }}" style="display:inline;" onsubmit="return confirm('Delete this item?');">
                     <button type="submit" style="background:none;border:none;color:#d9534f;cursor:pointer;text-decoration:underline;font-family:inherit;font-size:inherit;padding:0;">Delete</button>

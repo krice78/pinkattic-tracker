@@ -1,4 +1,5 @@
 from decimal import Decimal
+from datetime import datetime, UTC
 from flask import Blueprint, redirect, url_for, flash, request, render_template
 from flask_login import login_required, current_user
 from flask_wtf import FlaskForm
@@ -100,4 +101,24 @@ def delete_item(item_id):
     db.session.delete(item)
     db.session.commit()
     flash("Item deleted.", "success")
+    return redirect(url_for("main.index"))
+
+
+@items_bp.post("/mark-sold/<int:item_id>")
+@login_required
+def mark_sold(item_id):
+    item = Item.query.get_or_404(item_id)
+    if item.user_id != current_user.id:
+        flash("You do not have permission to modify this item.", "danger")
+        return redirect(url_for("main.index"))
+    
+    item.sold = not item.sold
+    if item.sold:
+        item.sold_date = datetime.now(UTC)
+        flash("Item marked as sold.", "success")
+    else:
+        item.sold_date = None
+        flash("Item marked as in stock.", "success")
+    
+    db.session.commit()
     return redirect(url_for("main.index"))

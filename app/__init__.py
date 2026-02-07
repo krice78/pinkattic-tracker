@@ -43,7 +43,7 @@ def create_app():
         form = ItemForm()
         items = Item.query.filter_by(user_id=current_user.id).all()
         total_profit = sum(item.total_profit for item in items)
-        total_invested = sum(float(item.cost_price) * item.quantity for item in items if not item.sold)
+        total_invested = sum(float(item.cost_price) * item.quantity for item in items)
         items_sold = sum(1 for item in items if item.sold)
         
         return render_template("dashboard.html", 

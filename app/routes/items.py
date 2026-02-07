@@ -15,7 +15,9 @@ class ItemForm(FlaskForm):
     name = StringField("Name", validators=[DataRequired()])
     quantity = IntegerField("Quantity", validators=[DataRequired(), NumberRange(min=1)], default=1)
     cost_price = DecimalField("Cost Price", validators=[DataRequired()], places=2)
+    source = StringField("Source", validators=[Optional()])
     selling_price = DecimalField("Selling Price", validators=[Optional()], places=2)
+    platform = StringField("Platform", validators=[Optional()])
     submit = SubmitField("Add Item")
 
 
@@ -32,7 +34,9 @@ def add_item():
         name=form.name.data.strip(),
         quantity=int(form.quantity.data),
         cost_price=Decimal(form.cost_price.data),
-        selling_price=Decimal(form.selling_price.data) if form.selling_price.data is not None else None
+        source=form.source.data.strip() if form.source.data else None,
+        selling_price=Decimal(form.selling_price.data) if form.selling_price.data is not None else None,
+        platform=form.platform.data.strip() if form.platform.data else None
     )
 
     db.session.add(item)

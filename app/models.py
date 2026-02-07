@@ -49,6 +49,7 @@ class Item(db.Model):
     name = db.Column(db.String(255), nullable=False)
     quantity = db.Column(db.Integer, default=1, nullable=False)
     cost_price = db.Column(db.Numeric(10, 2), nullable=False)  # What you paid
+    source = db.Column(db.String(255), nullable=True)  # Where you got it (thrift store, etc)
     selling_price = db.Column(db.Numeric(10, 2), nullable=True)  # What you're selling for
     platform = db.Column(db.String(255), nullable=True)  # Etsy eBay, Poshmark, etc
     sold = db.Column(db.Boolean, default=False)

@@ -74,11 +74,15 @@
         <thead>
           <tr>
             <th>Name</th>
+            <th>Thumbnail</th>
+            <th>SKU</th>
             <th>Qty</th>
             <th>Cost</th>
             <th>Source</th>
             <th>Selling Price</th>
             <th>Platform</th>
+            <th>Listing ID </th>
+            <th>Date Listed</th>
             <th>Profit/Item</th>
             <th>Status</th>
             <th>Actions</th>
@@ -88,11 +92,15 @@
           {% for item in items %}
             <tr {% if item.sold %}class="sold"{% endif %}>
               <td>{{ item.name }}</td>
+              <td>{% if item.thumbnail_url %}<img src="{{ item.thumbnail_url }}" alt="Thumbnail" style="max-width:50px; max-height:50px;">{% else %}-{% endif %}</td>
+              <td>{{ item.sku or '-' }}</td>
               <td>{{ item.quantity }}</td>
               <td>${{ "%.2f"|format(item.cost_price) }}</td>
               <td>{{ item.source or '-' }}</td>
               <td>{% if item.selling_price %}${{ "%.2f"|format(item.selling_price) }}{% else %}-{% endif %}</td>
               <td>{{ item.platform or '-' }}</td>
+              <td>{{ item.listing_id or '-' }}</td>
+              <td>{% if item.date_listed %}{{ item.date_listed.strftime('%m/%d/%Y') }}{% else %}-{% endif %}</td>
               <td>
                 {% if item.profit_per_item > 0 %}
                   <span class="profit">${{ "%.2f"|format(item.profit_per_item) }}</span>

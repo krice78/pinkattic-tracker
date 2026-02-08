@@ -47,11 +47,15 @@ class Item(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey("categories.id"), nullable=True)
     name = db.Column(db.String(255), nullable=False)
+    listing_id = db.Column(db.String(255), nullable=True)  # ID for linking to listing
     quantity = db.Column(db.Integer, default=1, nullable=False)
     cost_price = db.Column(db.Numeric(10, 2), nullable=False)  # What you paid
     source = db.Column(db.String(255), nullable=True)  # Where you got it (thrift store, etc)
     selling_price = db.Column(db.Numeric(10, 2), nullable=True)  # What you're selling for
     platform = db.Column(db.String(255), nullable=True)  # Etsy eBay, Poshmark, etc
+    sku = db.Column(db.String(255), nullable=True)  #  SKU for inventory management
+    thumbnail_url = db.Column(db.String(255), nullable=True)  # URL for item image
+    date_listed = db.Column(db.DateTime, nullable=True)  # When you listed the item for sale
     sold = db.Column(db.Boolean, default=False)
     sold_date = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC), nullable=False)

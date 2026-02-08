@@ -3,7 +3,7 @@ from datetime import datetime, UTC
 from flask import Blueprint, redirect, url_for, flash, request, render_template
 from flask_login import login_required, current_user
 from flask_wtf import FlaskForm
-from wtforms import StringField, IntegerField, DecimalField, SubmitField
+from wtforms import StringField, IntegerField, DecimalField, SubmitField, DateField
 from wtforms.validators import DataRequired, NumberRange, Optional
 
 from .. import db
@@ -19,6 +19,10 @@ class ItemForm(FlaskForm):
     source = StringField("Source", validators=[Optional()])
     selling_price = DecimalField("Selling Price", validators=[Optional()], places=2)
     platform = StringField("Platform", validators=[Optional()])
+    listing_id = StringField("Listing ID", validators=[Optional()])
+    sku = StringField("SKU", validators=[Optional()])
+    thumbnail_url = StringField("Thumbnail URL", validators=[Optional()])
+    date_listed = DateField("Date Listed", validators=[Optional()])
     submit = SubmitField("Add Item")
 
 
@@ -33,11 +37,15 @@ def add_item():
     item = Item(
         user_id=current_user.id,
         name=form.name.data.strip(),
+        listing_id=form.listing_id.data.strip() if form.listing_id.data else None,
+        sku=form.sku.data.strip() if form.sku.data else None,
         quantity=int(form.quantity.data),
         cost_price=Decimal(form.cost_price.data),
         source=form.source.data.strip() if form.source.data else None,
         selling_price=Decimal(form.selling_price.data) if form.selling_price.data is not None else None,
-        platform=form.platform.data.strip() if form.platform.data else None
+        platform=form.platform.data.strip() if form.platform.data else None,
+        thumbnail_url=form.thumbnail_url.data.strip() if form.thumbnail_url.data else None,
+        date_listed=form.date_listed.data if form.date_listed.data else None
     )
 
     db.session.add(item)
@@ -61,6 +69,10 @@ def edit_get(item_id):
     form.source.data = item.source
     form.selling_price.data = item.selling_price
     form.platform.data = item.platform
+    form.listing_id.data = item.listing_id
+    form.sku.data = item.sku
+    form.thumbnail_url.data = item.thumbnail_url
+    form.date_listed.data = item.date_listed
     
     return render_template("edit_item.html", form=form, item=item)
 
@@ -84,6 +96,10 @@ def edit_post(item_id):
     item.source = form.source.data.strip() if form.source.data else None
     item.platform = form.platform.data.strip() if form.platform.data else None
     item.selling_price = Decimal(form.selling_price.data) if form.selling_price.data is not None else None
+    item.listing_id = form.listing_id.data.strip() if form.listing_id.data else None
+    item.sku = form.sku.data.strip() if form.sku.data else None
+    item.thumbnail_url = form.thumbnail_url.data.strip() if form.thumbnail_url.data else None
+    item.date_listed = form.date_listed.data if form.date_listed.data else None
     
     db.session.commit()
     flash("Item updated.", "success")

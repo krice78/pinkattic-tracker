@@ -6,9 +6,9 @@ Built with Flask and SQLAlchemy, this tool allows users to create accounts, cate
 
 ---
 
-## 🚀 Features (Current & Planned)
+##  Features (Current & Planned)
 
-### ✅ Current / MVP (in progress)
+###  Current / MVP (in progress)
 - User registration & login
 - Add inventory items with:
   - Cost
@@ -23,7 +23,7 @@ Built with Flask and SQLAlchemy, this tool allows users to create accounts, cate
   - Notes/Fees
 - Filter and search inventory
 
-### 🔜 Planned
+###  Planned
 - CSV import for bulk item entry
 - eBay active listings import (API integration)
 - Profit & reporting dashboard
@@ -32,7 +32,7 @@ Built with Flask and SQLAlchemy, this tool allows users to create accounts, cate
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 - Python
 - Flask
@@ -43,7 +43,7 @@ Built with Flask and SQLAlchemy, this tool allows users to create accounts, cate
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 pinkattic_tracker/
 │ run.py

@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>Map Columns - Pink Attic Tracker</title></head>
+  <body>
+    <p><a href="{{ url_for('importers.upload_get') }}">&larr; Start over</a></p>
+    <h1>Map CSV Columns</h1>
+    <p>Match each field to a column from your CSV file. Fields marked * are required. We've pre-filled likely matches below - double check them and change any that are wrong.</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul>
+          {% for category, message in messages %}
+            <li><strong>{{ category }}:</strong> {{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form method="post" action="{{ url_for('importers.map_post') }}">
+      <p>
+        <label><input type="checkbox" name="mark_sold"> Mark all imported items as Sold</label><br>
+        <small>Use this for a platform's "sold" or "orders" report. Uses the mapped Sold Date column below if you set one, otherwise today's date.</small>
+      </p>
+      {% for field_key, label, required in fields %}
+        <p>
+          <label for="map_{{ field_key }}">{{ label }}{% if required %} *{% endif %}</label><br>
+          <select name="map_{{ field_key }}" id="map_{{ field_key }}">
+            <option value="">-- Not mapped --</option>
+            {% for header in headers %}
+              <option value="{{ header }}" {% if mapping_guess.get(field_key) == header %}selected{% endif %}>{{ header }}</option>
+            {% endfor %}
+          </select>
+          {% if field_key == "cost_price" %}
+            <br><small>Most marketplace exports don't include what you paid. Leave unmapped to default to $0.00 and fill it in later from the edit item page.</small>
+          {% endif %}
+          {% if field_key == "platform" %}
+            <br><small>Used when no column is mapped above (or a row's cell is blank).</small><br>
+            <label for="default_platform">Default Platform</label><br>
+            <input type="text" name="default_platform" id="default_platform" size="30" value="{{ platform_default }}">
+          {% endif %}
+          {% if field_key == "sold_date" %}
+            <br><small>Only used when "Mark all imported items as Sold" is checked above.</small>
+          {% endif %}
+        </p>
+      {% endfor %}
+      <p><button type="submit">Preview Import</button></p>
+    </form>
+  </body>
+</html>

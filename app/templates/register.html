@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>Register</title></head>
+  <body>
+    <h1>Create account</h1>
+
+    <form method="post">
+      {{ form.hidden_tag() }}
+
+      <p>{{ form.email.label }}<br>{{ form.email(size=32) }}</p>
+      {% for e in form.email.errors %}<p style="color:red;">{{ e }}</p>{% endfor %}
+
+      <p>{{ form.password.label }}<br>{{ form.password(size=32) }}</p>
+      {% for e in form.password.errors %}<p style="color:red;">{{ e }}</p>{% endfor %}
+
+      <p>{{ form.confirm_password.label }}<br>{{ form.confirm_password(size=32) }}</p>
+      {% for e in form.confirm_password.errors %}<p style="color:red;">{{ e }}</p>{% endfor %}
+
+      <p>{{ form.submit() }}</p>
+    </form>
+
+    <p><a href="{{ url_for('auth.login_get') }}">Already have an account? Log in</a></p>
+  </body>
+</html>

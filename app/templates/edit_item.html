@@ -1,0 +1,25 @@
+<form method="post">
+  {{ form.hidden_tag() }}
+  <p>{{ form.name.label }}<br>{{ form.name(size=30) }}</p>
+  {% for e in form.name.errors %}<p style="color:red;">{{ e }}</p>{% endfor %}
+
+  <p>{{ form.quantity.label }}<br>{{ form.quantity() }}</p>
+  {% for e in form.quantity.errors %}<p style="color:red;">{{ e }}</p>{% endfor %}
+
+  <p>{{ form.cost_price.label }}<br>{{ form.cost_price() }}</p>
+  {% for e in form.cost_price.errors %}<p style="color:red;">{{ e }}</p>{% endfor %}
+
+  <p>{{ form.source.label }}<br>{{ form.source(size=30) }}</p>
+  <p>{{ form.selling_price.label }}<br>{{ form.selling_price() }}</p>
+  <p>{{ form.platform.label }}<br>{{ form.platform(size=30) }}</p>
+
+  <p>{{ form.submit() }}</p>
+</form>
+
+<h3>Category</h3>
+<form method="post" action="{{ url_for('categories.assign_category', item_id=item.id) }}">
+  {{ category_form.hidden_tag() }}
+  <p>{{ category_form.category_id.label }}<br>{{ category_form.category_id() }}</p>
+  <p>{{ category_form.submit() }}</p>
+</form>
+<p><a href="{{ url_for('categories.list_categories') }}">Manage categories</a></p>

@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Categories - Pink Attic Tracker</title>
+  </head>
+  <body>
+    <p><a href="{{ url_for('main.index') }}">&larr; Back to dashboard</a></p>
+    <h1>Categories</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul>
+          {% for category, message in messages %}
+            <li><strong>{{ category }}:</strong> {{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <h3>Add Category</h3>
+    <form method="post" action="{{ url_for('categories.create_category') }}">
+      {{ form.hidden_tag() }}
+      <p>{{ form.name.label }}<br>{{ form.name(size=30) }}</p>
+      {% for e in form.name.errors %}<p style="color:red;">{{ e }}</p>{% endfor %}
+      <p>{{ form.submit() }}</p>
+    </form>
+
+    <h3>Your Categories</h3>
+    {% if categories %}
+      <ul>
+        {% for category in categories %}
+          <li>{{ category.name }}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No categories yet.</p>
+    {% endif %}
+  </body>
+</html>

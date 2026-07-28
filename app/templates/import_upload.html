@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>Import Inventory - Pink Attic Tracker</title></head>
+  <body>
+    <p><a href="{{ url_for('main.index') }}">&larr; Back to dashboard</a></p>
+    <h1>Import Inventory from CSV</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul>
+          {% for category, message in messages %}
+            <li><strong>{{ category }}:</strong> {{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form method="post" action="{{ url_for('importers.upload_post') }}" enctype="multipart/form-data">
+      {{ form.hidden_tag() }}
+      <p>{{ form.csv_file.label }}<br>{{ form.csv_file() }}</p>
+      {% for e in form.csv_file.errors %}<p style="color:red;">{{ e }}</p>{% endfor %}
+      <p>{{ form.submit() }}</p>
+    </form>
+  </body>
+</html>

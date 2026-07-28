@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>Pink Attic Tracker</title></head>
+  <body>
+    <h1>Pink Attic Tracker</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul>
+          {% for category, message in messages %}
+            <li><strong>{{ category }}:</strong> {{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    {% if current_user.is_authenticated %}
+      <p>Logged in as {{ current_user.email }}</p>
+      <p><a href="{{ url_for('auth.logout') }}">Logout</a></p>
+    {% else %}
+      <p><a href="{{ url_for('auth.login_get') }}">Login</a> | <a href="{{ url_for('auth.register_get') }}">Register</a></p>
+    {% endif %}
+  </body>
+</html>

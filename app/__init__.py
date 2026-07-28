@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template, redirect, url_for, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user
 from flask_migrate import Migrate
@@ -31,6 +31,9 @@ def create_app(config_overrides=None):
     from .routes.items import items_bp
     app.register_blueprint(items_bp)
 
+    from .routes.categories import categories_bp
+    app.register_blueprint(categories_bp)
+
     # Main blueprint
     from flask import Blueprint
     main_bp = Blueprint("main", __name__)
@@ -40,21 +43,31 @@ def create_app(config_overrides=None):
         if not current_user.is_authenticated:
             return redirect(url_for("auth.login_get"))
         
-        from .models import Item
+        from .models import Item, Category
         from .routes.items import ItemForm
-        
+
         form = ItemForm()
-        items = Item.query.filter_by(user_id=current_user.id).all()
+
+        category_id = request.args.get("category_id", type=int)
+        query = Item.query.filter_by(user_id=current_user.id)
+        if category_id:
+            query = query.filter_by(category_id=category_id)
+        items = query.all()
+
+        categories = Category.query.filter_by(user_id=current_user.id).order_by(Category.name).all()
+
         total_profit = sum(item.total_profit for item in items)
         total_invested = sum(float(item.cost_price) * item.quantity for item in items)
         items_sold = sum(1 for item in items if item.sold)
-        
-        return render_template("dashboard.html", 
+
+        return render_template("dashboard.html",
                              items=items,
                              total_profit=total_profit,
                              total_invested=total_invested,
                              items_sold=items_sold,
-                             form=form)
+                             form=form,
+                             categories=categories,
+                             selected_category_id=category_id)
         
     @main_bp.get("/login")
     def login_alias():

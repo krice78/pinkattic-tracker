@@ -15,3 +15,11 @@
 
   <p>{{ form.submit() }}</p>
 </form>
+
+<h3>Category</h3>
+<form method="post" action="{{ url_for('categories.assign_category', item_id=item.id) }}">
+  {{ category_form.hidden_tag() }}
+  <p>{{ category_form.category_id.label }}<br>{{ category_form.category_id() }}</p>
+  <p>{{ category_form.submit() }}</p>
+</form>
+<p><a href="{{ url_for('categories.list_categories') }}">Manage categories</a></p>

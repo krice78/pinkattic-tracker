@@ -7,7 +7,8 @@ from wtforms import StringField, IntegerField, DecimalField, SubmitField, DateFi
 from wtforms.validators import DataRequired, NumberRange, Optional
 
 from .. import db
-from ..models import Item
+from ..models import Item, Category
+from .categories import AssignCategoryForm
 
 items_bp = Blueprint("items", __name__, url_prefix="/items")
 
@@ -73,8 +74,14 @@ def edit_get(item_id):
     form.sku.data = item.sku
     form.thumbnail_url.data = item.thumbnail_url
     form.date_listed.data = item.date_listed
-    
-    return render_template("edit_item.html", form=form, item=item)
+
+    category_form = AssignCategoryForm()
+    category_form.category_id.choices = [(0, "-- None --")] + [
+        (c.id, c.name) for c in Category.query.filter_by(user_id=current_user.id).order_by(Category.name).all()
+    ]
+    category_form.category_id.data = item.category_id or 0
+
+    return render_template("edit_item.html", form=form, item=item, category_form=category_form)
 
 
 @items_bp.post("/edit/<int:item_id>")

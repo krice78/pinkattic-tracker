@@ -70,7 +70,8 @@
     <hr>
     <h2>Inventory Items</h2>
     <p>
-      <a href="{{ url_for('categories.list_categories') }}">Manage Categories</a>
+      <a href="{{ url_for('categories.list_categories') }}">Manage Categories</a> |
+      <a href="{{ url_for('importers.upload_get') }}">Import from CSV</a>
     </p>
     <form method="get" action="{{ url_for('main.index') }}">
       <label for="category_id">Filter by Category</label><br>

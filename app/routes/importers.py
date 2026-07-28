@@ -21,7 +21,7 @@ IMPORT_DIR_NAME = "imports"
 # (item_field, label, required)
 MAPPABLE_FIELDS = [
     ("name", "Name", True),
-    ("cost_price", "Cost Price", True),
+    ("cost_price", "Cost Price", False),
     ("quantity", "Quantity", False),
     ("selling_price", "Selling Price", False),
     ("source", "Source", False),
@@ -32,6 +32,32 @@ MAPPABLE_FIELDS = [
     ("date_listed", "Date Listed", False),
     ("category", "Category", False),
 ]
+
+# Matched against the uploaded filename (case-insensitive) to guess the
+# platform when the CSV itself has no platform column - most marketplace
+# exports are single-platform, so the filename is usually a reliable signal.
+PLATFORM_FILENAME_KEYWORDS = {
+    "ebay": "eBay",
+    "etsy": "Etsy",
+    "poshmark": "Poshmark",
+    "mercari": "Mercari",
+    "depop": "Depop",
+    "vinted": "Vinted",
+    "offerup": "OfferUp",
+    "whatnot": "Whatnot",
+    "grailed": "Grailed",
+    "facebook": "Facebook Marketplace",
+}
+
+
+def _guess_platform_from_filename(filename):
+    if not filename:
+        return None
+    lowered = filename.lower()
+    for keyword, display_name in PLATFORM_FILENAME_KEYWORDS.items():
+        if keyword in lowered:
+            return display_name
+    return None
 
 
 class UploadForm(FlaskForm):
@@ -57,13 +83,15 @@ def _read_rows(import_id):
     return rows[0], rows[1:]
 
 
-def parse_row(headers, row, mapping):
+def parse_row(headers, row, mapping, default_platform=None):
     """Map one CSV row to Item kwargs using a {item_field: csv_column} mapping.
 
     Returns (kwargs, errors). kwargs always has all mappable keys (None when
     blank/unmapped); errors is a list of human-readable problems with the row.
     kwargs["category_name"] is not an Item field - callers resolve/create the
-    Category separately.
+    Category separately. default_platform fills in "platform" when no column
+    is mapped to it (or the cell is blank) - typically guessed from the
+    uploaded filename, since most marketplace exports are single-platform.
     """
     values = dict(zip(headers, row))
     errors = []
@@ -82,8 +110,9 @@ def parse_row(headers, row, mapping):
 
     cost_raw = get("cost_price")
     if not cost_raw:
-        errors.append("Cost price is required.")
-        kwargs["cost_price"] = None
+        # eBay/Etsy/Poshmark exports don't track what you paid - default to $0
+        # and let the user fill it in later from the edit item page.
+        kwargs["cost_price"] = Decimal("0.00")
     else:
         try:
             kwargs["cost_price"] = Decimal(cost_raw.replace("$", "").replace(",", ""))
@@ -127,7 +156,7 @@ def parse_row(headers, row, mapping):
         kwargs["date_listed"] = parsed_date
 
     kwargs["source"] = get("source")
-    kwargs["platform"] = get("platform")
+    kwargs["platform"] = get("platform") or default_platform
     kwargs["sku"] = get("sku")
     kwargs["listing_id"] = get("listing_id")
     kwargs["thumbnail_url"] = get("thumbnail_url")
@@ -136,10 +165,17 @@ def parse_row(headers, row, mapping):
     return kwargs, errors
 
 
+def _decode_csv(raw_bytes):
+    if raw_bytes.startswith(b"\xff\xfe") or raw_bytes.startswith(b"\xfe\xff"):
+        return raw_bytes.decode("utf-16")
+    return raw_bytes.decode("utf-8-sig", errors="replace")
+
+
 def _cleanup_import():
     import_id = session.pop("import_id", None)
     session.pop("import_headers", None)
     session.pop("import_mapping", None)
+    session.pop("import_platform_default", None)
     if import_id:
         path = _import_path(import_id)
         if os.path.exists(path):
@@ -161,19 +197,29 @@ def upload_post():
         flash("Please choose a valid CSV file.", "warning")
         return redirect(url_for("importers.upload_get"))
 
-    raw = form.csv_file.data.read().decode("utf-8-sig", errors="replace")
+    raw = _decode_csv(form.csv_file.data.read())
     rows = list(csv.reader(io.StringIO(raw)))
-    if not rows or not rows[0]:
+
+    skipped_blank_rows = 0
+    while rows and not any(cell.strip() for cell in rows[0]):
+        rows.pop(0)
+        skipped_blank_rows += 1
+
+    if not rows:
         flash("That CSV file appears to be empty.", "warning")
         return redirect(url_for("importers.upload_get"))
 
     import_id = uuid.uuid4().hex
     with open(_import_path(import_id), "w", newline="", encoding="utf-8") as f:
-        f.write(raw)
+        csv.writer(f).writerows(rows)
 
     session["import_id"] = import_id
     session["import_headers"] = rows[0]
+    session["import_platform_default"] = _guess_platform_from_filename(form.csv_file.data.filename)
     session.pop("import_mapping", None)
+
+    if skipped_blank_rows:
+        flash(f"Skipped {skipped_blank_rows} blank row(s) before the header row.", "info")
 
     return redirect(url_for("importers.map_get"))
 

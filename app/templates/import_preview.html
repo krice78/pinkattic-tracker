@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>Preview Import - Pink Attic Tracker</title></head>
+  <body>
+    <p><a href="{{ url_for('importers.map_get') }}">&larr; Back to mapping</a></p>
+    <h1>Preview Import</h1>
+    <p>{{ valid_count }} of {{ total_count }} row(s) look valid and will be imported. Invalid rows are skipped.</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul>
+          {% for category, message in messages %}
+            <li><strong>{{ category }}:</strong> {{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <table border="1" cellpadding="5">
+      <thead>
+        <tr>
+          <th>Line</th>
+          <th>Name</th>
+          <th>Cost</th>
+          <th>Selling Price</th>
+          <th>Qty</th>
+          <th>Category</th>
+          <th>Issues</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in previews %}
+          <tr style="{% if row.errors %}background:#fdd;{% endif %}">
+            <td>{{ row.line }}</td>
+            <td>{{ row.kwargs.name or '-' }}</td>
+            <td>{{ row.kwargs.cost_price if row.kwargs.cost_price is not none else '-' }}</td>
+            <td>{{ row.kwargs.selling_price if row.kwargs.selling_price is not none else '-' }}</td>
+            <td>{{ row.kwargs.quantity if row.kwargs.quantity is not none else '-' }}</td>
+            <td>{{ row.kwargs.category_name or '-' }}</td>
+            <td>
+              {% if row.errors %}
+                <ul>{% for e in row.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+              {% else %}
+                OK
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <form method="post" action="{{ url_for('importers.confirm_post') }}" style="display:inline;">
+      <button type="submit" {% if valid_count == 0 %}disabled{% endif %}>Confirm Import ({{ valid_count }})</button>
+    </form>
+    <form method="post" action="{{ url_for('importers.cancel_post') }}" style="display:inline;">
+      <button type="submit">Cancel</button>
+    </form>
+  </body>
+</html>

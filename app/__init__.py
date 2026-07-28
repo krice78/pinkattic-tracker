@@ -34,6 +34,9 @@ def create_app(config_overrides=None):
     from .routes.categories import categories_bp
     app.register_blueprint(categories_bp)
 
+    from .routes.importers import importers_bp
+    app.register_blueprint(importers_bp)
+
     # Main blueprint
     from flask import Blueprint
     main_bp = Blueprint("main", __name__)

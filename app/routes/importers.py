@@ -2,7 +2,7 @@ import csv
 import io
 import os
 import uuid
-from datetime import datetime
+from datetime import datetime, UTC
 from decimal import Decimal, InvalidOperation
 
 from flask import Blueprint, current_app, flash, redirect, render_template, request, session, url_for
@@ -30,6 +30,7 @@ MAPPABLE_FIELDS = [
     ("listing_id", "Listing ID", False),
     ("thumbnail_url", "Thumbnail URL", False),
     ("date_listed", "Date Listed", False),
+    ("sold_date", "Sold Date", False),
     ("category", "Category", False),
 ]
 
@@ -83,7 +84,24 @@ def _read_rows(import_id):
     return rows[0], rows[1:]
 
 
-def parse_row(headers, row, mapping, default_platform=None):
+DATE_FORMATS = (
+    "%Y-%m-%d",
+    "%m/%d/%Y",
+    "%b-%d-%y",  # eBay's report format, e.g. "May-09-26"
+    "%b-%d-%Y",
+)
+
+
+def _parse_date(raw):
+    for fmt in DATE_FORMATS:
+        try:
+            return datetime.strptime(raw, fmt)
+        except ValueError:
+            continue
+    return None
+
+
+def parse_row(headers, row, mapping, default_platform=None, mark_sold=False):
     """Map one CSV row to Item kwargs using a {item_field: csv_column} mapping.
 
     Returns (kwargs, errors). kwargs always has all mappable keys (None when
@@ -92,6 +110,9 @@ def parse_row(headers, row, mapping, default_platform=None):
     Category separately. default_platform fills in "platform" when no column
     is mapped to it (or the cell is blank) - typically guessed from the
     uploaded filename, since most marketplace exports are single-platform.
+    mark_sold marks every row sold=True, using a mapped Sold Date column when
+    present and today otherwise - for importing a platform's "sold"/"orders"
+    report, where every row is by definition already sold.
     """
     values = dict(zip(headers, row))
     errors = []
@@ -144,16 +165,24 @@ def parse_row(headers, row, mapping, default_platform=None):
     if date_raw is None:
         kwargs["date_listed"] = None
     else:
-        parsed_date = None
-        for fmt in ("%Y-%m-%d", "%m/%d/%Y"):
-            try:
-                parsed_date = datetime.strptime(date_raw, fmt)
-                break
-            except ValueError:
-                continue
+        parsed_date = _parse_date(date_raw)
         if parsed_date is None:
-            errors.append(f"Date listed '{date_raw}' is not a recognized date (use YYYY-MM-DD or MM/DD/YYYY).")
+            errors.append(f"Date listed '{date_raw}' is not a recognized date (try YYYY-MM-DD, MM/DD/YYYY, or Mon-DD-YY).")
         kwargs["date_listed"] = parsed_date
+
+    if mark_sold:
+        sold_date_raw = get("sold_date")
+        if sold_date_raw is None:
+            kwargs["sold_date"] = datetime.now(UTC)
+        else:
+            parsed_sold_date = _parse_date(sold_date_raw)
+            if parsed_sold_date is None:
+                errors.append(f"Sold date '{sold_date_raw}' is not a recognized date (try YYYY-MM-DD, MM/DD/YYYY, or Mon-DD-YY).")
+            kwargs["sold_date"] = parsed_sold_date or datetime.now(UTC)
+        kwargs["sold"] = True
+    else:
+        kwargs["sold"] = False
+        kwargs["sold_date"] = None
 
     kwargs["source"] = get("source")
     kwargs["platform"] = get("platform") or default_platform
@@ -176,6 +205,7 @@ def _cleanup_import():
     session.pop("import_headers", None)
     session.pop("import_mapping", None)
     session.pop("import_platform_default", None)
+    session.pop("import_mark_sold", None)
     if import_id:
         path = _import_path(import_id)
         if os.path.exists(path):
@@ -231,7 +261,12 @@ def map_get():
         flash("Please upload a CSV file first.", "warning")
         return redirect(url_for("importers.upload_get"))
 
-    return render_template("import_map.html", headers=session["import_headers"], fields=MAPPABLE_FIELDS)
+    return render_template(
+        "import_map.html",
+        headers=session["import_headers"],
+        fields=MAPPABLE_FIELDS,
+        platform_default=session.get("import_platform_default") or "",
+    )
 
 
 @importers_bp.post("/map")
@@ -253,6 +288,8 @@ def map_post():
         return redirect(url_for("importers.map_get"))
 
     session["import_mapping"] = mapping
+    session["import_platform_default"] = request.form.get("default_platform", "").strip() or None
+    session["import_mark_sold"] = request.form.get("mark_sold") == "on"
     return redirect(url_for("importers.preview_get"))
 
 
@@ -265,11 +302,13 @@ def preview_get():
         flash("Please upload and map a CSV file first.", "warning")
         return redirect(url_for("importers.upload_get"))
 
+    default_platform = session.get("import_platform_default")
+    mark_sold = session.get("import_mark_sold", False)
     headers, data_rows = _read_rows(import_id)
     previews = []
     valid_count = 0
     for line_number, row in enumerate(data_rows, start=2):  # header is line 1
-        kwargs, errors = parse_row(headers, row, mapping)
+        kwargs, errors = parse_row(headers, row, mapping, default_platform=default_platform, mark_sold=mark_sold)
         if not errors:
             valid_count += 1
         previews.append({"line": line_number, "kwargs": kwargs, "errors": errors})
@@ -286,6 +325,8 @@ def confirm_post():
         flash("Please upload and map a CSV file first.", "warning")
         return redirect(url_for("importers.upload_get"))
 
+    default_platform = session.get("import_platform_default")
+    mark_sold = session.get("import_mark_sold", False)
     headers, data_rows = _read_rows(import_id)
 
     category_cache = {c.name.lower(): c for c in Category.query.filter_by(user_id=current_user.id).all()}
@@ -293,7 +334,7 @@ def confirm_post():
     imported = 0
     skipped = 0
     for row in data_rows:
-        kwargs, errors = parse_row(headers, row, mapping)
+        kwargs, errors = parse_row(headers, row, mapping, default_platform=default_platform, mark_sold=mark_sold)
         if errors:
             skipped += 1
             continue

@@ -4,7 +4,7 @@
   <body>
     <p><a href="{{ url_for('importers.upload_get') }}">&larr; Start over</a></p>
     <h1>Map CSV Columns</h1>
-    <p>Match each field to a column from your CSV file. Fields marked * are required.</p>
+    <p>Match each field to a column from your CSV file. Fields marked * are required. We've pre-filled likely matches below - double check them and change any that are wrong.</p>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
@@ -27,7 +27,7 @@
           <select name="map_{{ field_key }}" id="map_{{ field_key }}">
             <option value="">-- Not mapped --</option>
             {% for header in headers %}
-              <option value="{{ header }}">{{ header }}</option>
+              <option value="{{ header }}" {% if mapping_guess.get(field_key) == header %}selected{% endif %}>{{ header }}</option>
             {% endfor %}
           </select>
           {% if field_key == "cost_price" %}

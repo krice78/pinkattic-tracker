@@ -1,6 +1,7 @@
 import csv
 import io
 import os
+import re
 import uuid
 from datetime import datetime, UTC
 from decimal import Decimal, InvalidOperation
@@ -59,6 +60,41 @@ def _guess_platform_from_filename(filename):
         if keyword in lowered:
             return display_name
     return None
+
+
+# Common column names (case/punctuation-insensitive) for each field, checked
+# in priority order, used to pre-select a likely mapping. Always overridable
+# via the dropdown - this only saves re-picking the obvious ones every time.
+FIELD_ALIASES = {
+    "name": ["name", "item name", "title", "item title", "product name", "product"],
+    "cost_price": ["cost price", "cost", "purchase price", "price paid", "what i paid", "item cost"],
+    "quantity": ["quantity", "qty"],
+    "selling_price": ["sold for", "selling price", "sale price", "price sold", "amount sold"],
+    "source": ["source", "purchased from", "where bought"],
+    "platform": ["platform", "marketplace", "site"],
+    "sku": ["sku", "custom label", "custom sku"],
+    "listing_id": ["listing id", "item number", "item id"],
+    "thumbnail_url": ["thumbnail", "thumbnail url", "image", "image url", "photo", "photo url"],
+    "date_listed": ["date listed", "listed date", "list date"],
+    "sold_date": ["sold date", "sale date", "date sold"],
+    "category": ["category", "item category", "type"],
+}
+
+
+def _normalize_header(value):
+    return re.sub(r"[^a-z0-9]+", " ", value.lower()).strip()
+
+
+def _guess_mapping(headers):
+    normalized_to_header = {_normalize_header(h): h for h in headers}
+    guesses = {}
+    for field_key, aliases in FIELD_ALIASES.items():
+        for alias in aliases:
+            match = normalized_to_header.get(alias)
+            if match:
+                guesses[field_key] = match
+                break
+    return guesses
 
 
 class UploadForm(FlaskForm):
@@ -265,6 +301,7 @@ def map_get():
         "import_map.html",
         headers=session["import_headers"],
         fields=MAPPABLE_FIELDS,
+        mapping_guess=_guess_mapping(session["import_headers"]),
         platform_default=session.get("import_platform_default") or "",
     )
 

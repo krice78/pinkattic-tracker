@@ -69,6 +69,19 @@
     </form>
     <hr>
     <h2>Inventory Items</h2>
+    <p>
+      <a href="{{ url_for('categories.list_categories') }}">Manage Categories</a>
+    </p>
+    <form method="get" action="{{ url_for('main.index') }}">
+      <label for="category_id">Filter by Category</label><br>
+      <select name="category_id" id="category_id" onchange="this.form.submit()">
+        <option value="">All Categories</option>
+        {% for category in categories %}
+          <option value="{{ category.id }}" {% if selected_category_id == category.id %}selected{% endif %}>{{ category.name }}</option>
+        {% endfor %}
+      </select>
+      <noscript><button type="submit">Filter</button></noscript>
+    </form>
     {% if items %}
       <table>
         <thead>
@@ -76,6 +89,7 @@
             <th>Name</th>
             <th>Thumbnail</th>
             <th>SKU</th>
+            <th>Category</th>
             <th>Qty</th>
             <th>Cost</th>
             <th>Source</th>
@@ -94,6 +108,7 @@
               <td>{{ item.name }}</td>
               <td>{% if item.thumbnail_url %}<img src="{{ item.thumbnail_url }}" alt="Thumbnail" style="max-width:50px; max-height:50px;">{% else %}-{% endif %}</td>
               <td>{{ item.sku or '-' }}</td>
+              <td>{{ item.category.name if item.category else '-' }}</td>
               <td>{{ item.quantity }}</td>
               <td>${{ "%.2f"|format(item.cost_price) }}</td>
               <td>{{ item.source or '-' }}</td>

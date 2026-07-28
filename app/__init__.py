@@ -10,12 +10,15 @@ migrate = Migrate()
 login_manager.login_view = "auth.login_get"
 
 
-def create_app():
+def create_app(config_overrides=None):
     app = Flask(__name__)
 
     app.config["SECRET_KEY"] = "dev-key-change-later"
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///pinkattic.db"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+    if config_overrides:
+        app.config.update(config_overrides)
 
     db.init_app(app)
     login_manager.init_app(app)
